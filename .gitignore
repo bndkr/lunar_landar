@@ -1,0 +1,30 @@
+# C# build artifacts
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# NuGet packages
+packages/
+
+# Resharper files
+_ReSharper*/
+
+# Test Results
+TestResults/
+
+# Miscellaneous
+*.cache
+*.log
+*.bak
+*.tmp
+*.swp
+Thumbs.db
+.DS_Store
