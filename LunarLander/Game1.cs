@@ -15,12 +15,14 @@ public class Game1 : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
     }
 
     protected override void Initialize()
     {
         gameState = new GameState(this);
+        _graphics.PreferredBackBufferWidth = 1200;
+        _graphics.PreferredBackBufferHeight = 800;
+        _graphics.ApplyChanges();
         base.Initialize();
     }
 

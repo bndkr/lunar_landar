@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using LunarLander;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework;
 public enum KeyAction
 {
     RotateLeft,
@@ -30,7 +31,9 @@ public class GameState
     {
         _game = game;
         var menuEntries = new List<MenuItem>();
-        menuEntries.Add(new MenuItem { Name = "Start Game", Action = (gameState) => gameState.PushScreen(new LunarScreen(gameState, game.GraphicsDevice)) });
+        menuEntries.Add(new MenuItem { Name = "Start Game", Action = (gameState) => { 
+            gameState.PushScreen(new CountdownScreen(new LunarScreen(gameState, game.GraphicsDevice, LunarLevel.Easy), gameState));
+        } });
         menuEntries.Add(new MenuItem
         {
             Name = "Options",
@@ -54,20 +57,47 @@ public class GameState
         _keyActions.Add(new KeyBindAction("Rotate Left", KeyAction.RotateLeft, Keys.Left));
         _keyActions.Add(new KeyBindAction("Rotate Right", KeyAction.RotateRight, Keys.Right));
         _keyActions.Add(new KeyBindAction("Apply Thrust", KeyAction.Thrust, Keys.Up));
+        ResetLander();
+        _particleSystem = new LunarParticleSystem(_game);
     }
 
     public void RotateLanderLeft()
     {
-
+        if (_gameOver)
+            return;
+        var radians = 0.05;
+        var originalX = _landerRotationVectorX;
+        var originalY = _landerRotationVectorY;
+        _landerRotationVectorX = (float)(Math.Cos(-radians) * originalX - Math.Sin(-radians) * originalY);
+        _landerRotationVectorY = (float)(Math.Sin(-radians) * originalX + Math.Cos(-radians) * originalY);
     }
 
     public void RotateLanderRight()
     {
-
+        if (_gameOver)
+            return;
+        var radians = 0.05;
+        var originalX = _landerRotationVectorX;
+        var originalY = _landerRotationVectorY;
+        _landerRotationVectorX = (float)(Math.Cos(radians) * originalX - Math.Sin(radians) * originalY);
+        _landerRotationVectorY = (float)(Math.Sin(radians) * originalX + Math.Cos(radians) * originalY);
     }
     public void ThrustLander()
     {
+        _landerVelocityX += _landerRotationVectorX * 0.05f;
+        _landerVelocityY += _landerRotationVectorY * 0.05f;
+        Fuel--;
+        _particleSystem.Thrust(new Vector2(_landerX, _landerY), new Vector2(_landerRotationVectorX, _landerRotationVectorY));
+    }
 
+    public void ResetLander()
+    {
+        _landerX = 100;
+        _landerY = 100;
+        _landerRotationVectorX = 1;
+        _landerRotationVectorY = 0;
+        _landerVelocityX = 0;
+        _landerVelocityY = 0;
     }
 
     public void BindKey(Keys key, KeyAction action)
@@ -106,6 +136,20 @@ public class GameState
             _screens.Pop();
     }
 
+    public bool SafeLanding()
+    {
+        return _landerVelocityX * _landerVelocityX + _landerVelocityY * _landerVelocityY < 1
+        && Math.Abs(Math.Atan2(_landerRotationVectorY, _landerRotationVectorX)) < MathHelper.ToRadians(5);
+    }
+
+    public void UpdateLander()
+    {
+        if (_gameOver)
+            return;
+        _landerX += _landerVelocityX;
+        _landerY += _landerVelocityY;
+        _landerVelocityY += 0.01f;
+    }
     public List<KeyBindAction> getKeyBindings()
     {
         return _keyActions;
@@ -115,4 +159,16 @@ public class GameState
     private List<KeyBindAction> _keyActions = new List<KeyBindAction>();
     private Stack<GameScreen> _screens = new Stack<GameScreen>();
     private Game1 _game;
+
+    private int _score = 0;
+    public float _landerX;
+    public float _landerY;
+    public float _landerRotationVectorX;
+    public float _landerRotationVectorY;
+    public float _landerVelocityX;
+    public float _landerVelocityY;
+    public int Fuel = 1000;
+    public bool _gameOver = false;
+    public LunarParticleSystem _particleSystem;
+
 }

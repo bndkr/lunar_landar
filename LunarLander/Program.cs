@@ -8,6 +8,6 @@ try
 }
 catch (Exception ex)
 {
-    string errorMessage = $"An exception occurred: {ex.Message}";
+    string errorMessage = $"An exception occurred: {ex.Message}\n{ex.StackTrace}";
     File.WriteAllText("error.txt", errorMessage);
 }
