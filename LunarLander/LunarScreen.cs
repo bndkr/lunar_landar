@@ -37,7 +37,15 @@ public class LunarScreen : GameScreen
         }
 
         spriteBatch.Begin();
-        spriteBatch.Draw(_lander, new Vector2(_gameState._landerX, _gameState._landerY), null, Color.White, (float)Math.Atan2(_gameState._landerRotationVectorY, _gameState._landerRotationVectorX), new Vector2(_lander.Width / 2, _lander.Height / 2), 1.0f, SpriteEffects.None, 0);
+        if (_gameState._crashed)
+        {
+            spriteBatch.DrawString(_spriteFont, "You Crashed! Press Enter to return to main menu.", new Vector2(200, 100), Color.White);
+        }
+        else
+        {
+            spriteBatch.Draw(_lander, new Vector2(_gameState._landerX, _gameState._landerY), null, Color.White, (float)Math.Atan2(_gameState._landerRotationVectorY, _gameState._landerRotationVectorX), new Vector2(_lander.Width / 2, _lander.Height / 2), 1.0f, SpriteEffects.None, 0);
+
+        }
         if (_gameState._gameOver)
         {
             spriteBatch.DrawString(_spriteFont, "You Win! Press Enter to return to main menu.", new Vector2(100, 100), Color.White);
@@ -86,7 +94,16 @@ public class LunarScreen : GameScreen
         }
         else
         {
-            _gameState._particleSystem.StopThrust();
+            if (!_gameState._crashed && !_gameState._gameOver)
+                _gameState._particleSystem.StopThrust();
+        }
+        if (_gameState._crashed || _gameState._gameOver)
+        {
+            if (keyboardState.IsKeyDown(Keys.Enter))
+            {
+                _gameState.ResetLander();
+                _gameState.PopScreensToMainMenu();
+            }
         }
         if (keyboardState.IsKeyDown(Keys.Escape))
         {
@@ -101,8 +118,11 @@ public class LunarScreen : GameScreen
             }));
         }
         _gameState._particleSystem.Update(game);
-        _gameState.UpdateLander();
-        if (_terrain.CollidesWithRectangle(_gameState._landerX + 40, _device.Viewport.Height - (int)_gameState._landerY, 80, 80))
+        if (!_gameState._crashed && !_gameState._gameOver)
+        {
+            _gameState.UpdateLander();
+        }
+        if (_terrain.CollidesWithRectangle(_gameState._landerX + 40, _device.Viewport.Height - (int)_gameState._landerY, 80, 80) && !_gameState._crashed)
         {
             if (_gameState._landerVelocityX * _gameState._landerVelocityX + _gameState._landerVelocityY * _gameState._landerVelocityY < 1 &&
             _terrain.IsXValueInLandingZone(_gameState._landerX + 40))
@@ -113,13 +133,8 @@ public class LunarScreen : GameScreen
                     {
                         new MenuItem { Name = "You Landed Safely! Press enter to continue", Action = (gameState) => {
                             gameState.PopScreen();
+                            gameState.ResetLander();
                             gameState.PushScreen(new CountdownScreen(new LunarScreen(gameState, _device, LunarLevel.Hard), gameState));
-                            gameState.ResetLander();
-                        }},
-                        new MenuItem { Name = "Quit", Action = (gameState) => {
-                            gameState.ResetLander();
-                            gameState.PopScreen();
-                            gameState.PopScreen();
                         }}
                     }));
                 }
@@ -130,14 +145,17 @@ public class LunarScreen : GameScreen
             }
             else
             {
-                _gameState.PushScreen(new MenuScreen(_gameState, new List<MenuItem>
-            {
-                new MenuItem { Name = "You Crashed!", Action = (gameState) => {} },
-                new MenuItem { Name = "Quit", Action = (gameState) => {
-                    gameState.ResetLander();
-                    gameState.PopScreen();
-                    gameState.PopScreen(); }}
-            }));
+                _gameState._particleSystem.ShipCrash(new Vector2(_gameState._landerX, _gameState._landerY));
+                _gameState._crashed = true;
+                //     _gameState.PushScreen(new MenuScreen(_gameState, new List<MenuItem>
+                // {
+                //     new MenuItem { Name = "You Crashed!", Action = (gameState) => {} },
+                //     new MenuItem { Name = "Quit", Action = (gameState) => {
+                //         gameState.ResetLander();
+                //         gameState.PopScreen();
+                //         gameState.PopScreen(); }}
+                // }));
+
             }
 
         }

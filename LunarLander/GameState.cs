@@ -57,13 +57,13 @@ public class GameState
         _keyActions.Add(new KeyBindAction("Rotate Left", KeyAction.RotateLeft, Keys.Left));
         _keyActions.Add(new KeyBindAction("Rotate Right", KeyAction.RotateRight, Keys.Right));
         _keyActions.Add(new KeyBindAction("Apply Thrust", KeyAction.Thrust, Keys.Up));
-        ResetLander();
         _particleSystem = new LunarParticleSystem(_game);
+        ResetLander();
     }
 
     public void RotateLanderLeft()
     {
-        if (_gameOver)
+        if (_gameOver || _crashed)
             return;
         var radians = 0.05;
         var originalX = _landerRotationVectorX;
@@ -74,7 +74,7 @@ public class GameState
 
     public void RotateLanderRight()
     {
-        if (_gameOver)
+        if (_gameOver || _crashed)
             return;
         var radians = 0.05;
         var originalX = _landerRotationVectorX;
@@ -84,6 +84,8 @@ public class GameState
     }
     public void ThrustLander()
     {
+        if (_gameOver || _crashed)
+            return;
         _landerVelocityX += _landerRotationVectorX * 0.05f;
         _landerVelocityY += _landerRotationVectorY * 0.05f;
         Fuel--;
@@ -98,6 +100,10 @@ public class GameState
         _landerRotationVectorY = 0;
         _landerVelocityX = 0;
         _landerVelocityY = 0;
+        _crashed = false;
+        _gameOver = false;
+        Fuel = 100;
+        _particleSystem.Reset();
     }
 
     public void BindKey(Keys key, KeyAction action)
@@ -136,6 +142,12 @@ public class GameState
             _screens.Pop();
     }
 
+    public void PopScreensToMainMenu()
+    {
+        while (_screens.Count > 1)
+            _screens.Pop();
+    }
+
     public bool SafeLanding()
     {
         return _landerVelocityX * _landerVelocityX + _landerVelocityY * _landerVelocityY < 1
@@ -170,5 +182,6 @@ public class GameState
     public int Fuel = 1000;
     public bool _gameOver = false;
     public LunarParticleSystem _particleSystem;
+    public bool _crashed = false;
 
 }

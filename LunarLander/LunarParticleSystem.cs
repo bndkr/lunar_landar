@@ -15,6 +15,8 @@ public class LunarParticleSystem
     public void ShipCrash(Vector2 center)
     {
         _particleSystem = new ParticleSystem(center, 10, 5, 0.5f, 0.1f, 1000, 100, 0, 10);
+        _particleSystem.Generating = true;
+        // System.IO.File.AppendAllLines("crash.txt", new string[] { "Crash at " + center.ToString() });
     }
 
     public void Thrust(Vector2 center, Vector2 direction)
@@ -58,6 +60,10 @@ public class LunarParticleSystem
         {
             _particleSystem.Update(gameTime);
         }
+    }
+    public void Reset()
+    {
+        _particleSystem = null;
     }
     public bool Thrusting = false;
 }

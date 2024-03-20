@@ -42,7 +42,6 @@ namespace CS5410
                     SpriteEffects.None,
                     0);
             }
-
             spriteBatch.End();
         }
     }
